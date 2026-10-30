@@ -48,14 +48,33 @@ public class Updater {
         catch (Exception e) { return "?"; }
     }
 
+    // Opens a GET connection, manually following redirects (GitHub release downloads
+    // redirect across hosts, which HttpURLConnection does not reliably follow).
+    static HttpURLConnection openFollowingRedirects(String url) throws Exception {
+        String current = url;
+        for (int i = 0; i < 6; i++) {
+            HttpURLConnection conn = (HttpURLConnection) new URL(current).openConnection();
+            conn.setConnectTimeout(15000); conn.setReadTimeout(30000);
+            conn.setInstanceFollowRedirects(false);
+            int code = conn.getResponseCode();
+            if (code == 301 || code == 302 || code == 303 || code == 307 || code == 308) {
+                String loc = conn.getHeaderField("Location");
+                conn.disconnect();
+                if (loc == null) throw new Exception("Redirect without Location");
+                current = new URL(new URL(current), loc).toString();
+                continue;
+            }
+            if (code != 200) throw new Exception("HTTP " + code + " for " + current);
+            return conn;
+        }
+        throw new Exception("Too many redirects");
+    }
+
     public static void check(final Activity act, final Callback cb) {
         final String feed = getFeedUrl(act);
         new Thread(() -> {
             try {
-                HttpURLConnection conn = (HttpURLConnection) new URL(feed).openConnection();
-                conn.setConnectTimeout(10000); conn.setReadTimeout(10000);
-                conn.setRequestProperty("Accept", "application/json");
-                if (conn.getResponseCode() != 200) throw new Exception("Feed HTTP " + conn.getResponseCode());
+                HttpURLConnection conn = openFollowingRedirects(feed);
                 BufferedReader r = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
                 StringBuilder sb = new StringBuilder(); String line;
                 while ((line = r.readLine()) != null) sb.append(line);
@@ -84,9 +103,7 @@ public class Updater {
         Toast.makeText(act, "Downloading update...", Toast.LENGTH_SHORT).show();
         new Thread(() -> {
             try {
-                HttpURLConnection conn = (HttpURLConnection) new URL(apkUrl).openConnection();
-                conn.setConnectTimeout(15000); conn.setReadTimeout(30000);
-                if (conn.getResponseCode() != 200) throw new Exception("APK HTTP " + conn.getResponseCode());
+                HttpURLConnection conn = openFollowingRedirects(apkUrl);
                 File out = new File(act.getFilesDir(), "update.apk");
                 InputStream in = conn.getInputStream();
                 FileOutputStream fos = new FileOutputStream(out);
@@ -95,6 +112,9 @@ public class Updater {
                 fos.close(); in.close();
                 act.runOnUiThread(() -> {
                     Uri uri = Uri.parse("content://com.muse.helloworld.updateprovider/update.apk");
+                    for (String pkg : new String[]{"com.android.packageinstaller", "com.google.android.packageinstaller", "com.samsung.android.packageinstaller"}) {
+                        try { act.grantUriPermission(pkg, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION); } catch (Exception ignored) {}
+                    }
                     Intent i = new Intent(Intent.ACTION_VIEW);
                     i.setDataAndType(uri, "application/vnd.android.package-archive");
                     i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);

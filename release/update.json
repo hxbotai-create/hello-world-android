@@ -1,6 +1,6 @@
 {
-  "versionCode": 7,
-  "versionName": "5.1",
+  "versionCode": 8,
+  "versionName": "5.2",
   "apkUrl": "https://github.com/hxbotai-create/hello-world-android/releases/latest/download/hello-world.apk",
-  "notes": "v5.1 fix: unfold animation now also triggers from the display-size change on unfold, and the app no longer restarts when you fold/unfold."
+  "notes": "v5.2: fixes self-update downloads - follows GitHub redirects properly and serves the installer the file name/size it asks for."
 }
