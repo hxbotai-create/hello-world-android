@@ -1,0 +1,6 @@
+{
+  "versionCode": 4,
+  "versionName": "3.1",
+  "apkUrl": "https://github.com/hxbotai-create/hello-world-android/releases/latest/download/hello-world.apk",
+  "notes": "Self-updating with the correct GitHub feed URL."
+}

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="#FF0B1026">
+
+    <com.muse.helloworld.GlassBackgroundView
+        android:id="@+id/bgView"
+        android:layout_width="match_parent" android:layout_height="match_parent" />
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:padding="20dp">
+
+        <!-- Header -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:background="@drawable/glass_pill" android:paddingLeft="16dp" android:paddingRight="16dp"
+                android:paddingTop="8dp" android:paddingBottom="8dp"
+                android:text="✦  Muse Glass" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" />
+            <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:background="@drawable/chip" android:paddingLeft="12dp" android:paddingRight="12dp"
+                android:paddingTop="6dp" android:paddingBottom="6dp"
+                android:text="v3.1" android:textColor="#E6FFFFFF" android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Pages container -->
+        <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+            android:layout_marginTop="16dp">
+
+            <!-- PAGE HOME -->
+            <ScrollView android:id="@+id/pageHome" android:layout_width="match_parent" android:layout_height="match_parent"
+                android:scrollbars="none" android:fillViewport="true">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="vertical" android:background="@drawable/glass_card" android:padding="28dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Hello World!" android:textColor="#FFFFFF" android:textSize="38sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"
+                            android:text="Pretty, frosted and fluid — liquid glass over a living aurora, built for Horatio."
+                            android:textColor="#D9FFFFFF" android:textSize="15sp" />
+                        <TextView android:id="@+id/counterText" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginTop="24dp" android:text="0 taps" android:textColor="#FFFFFF" android:textSize="28sp" android:textStyle="bold" />
+                        <Button android:id="@+id/tapButton" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp" android:background="@drawable/glass_button"
+                            android:paddingLeft="28dp" android:paddingRight="28dp" android:paddingTop="10dp" android:paddingBottom="10dp"
+                            android:text="Tap me  ✦" android:textColor="#FFFFFF" android:textSize="15sp" android:textAllCaps="false" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="14dp">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                            android:orientation="vertical" android:background="@drawable/glass_card_small" android:padding="18dp" android:layout_marginRight="7dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3" android:textColor="#FFFFFF" android:textSize="24sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pages" android:textColor="#CCFFFFFF" android:textSize="13sp" />
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                            android:orientation="vertical" android:background="@drawable/glass_card_small" android:padding="18dp" android:layout_marginLeft="7dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Liquid" android:textColor="#FFFFFF" android:textSize="24sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Glass effect" android:textColor="#CCFFFFFF" android:textSize="13sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"
+                        android:background="@drawable/glass_card_small" android:padding="20dp" android:layout_marginTop="14dp" android:layout_marginBottom="8dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tip" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp"
+                            android:text="Head to Explore and tap a palette — the whole background, and the glass, changes mood."
+                            android:textColor="#D9FFFFFF" android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </ScrollView>
+
+            <!-- PAGE EXPLORE -->
+            <ScrollView android:id="@+id/pageExplore" android:layout_width="match_parent" android:layout_height="match_parent"
+                android:scrollbars="none" android:visibility="gone" android:fillViewport="true">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Explore" android:textColor="#FFFFFF" android:textSize="30sp" android:textStyle="bold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:layout_marginBottom="14dp"
+                        android:text="Tap a palette to restyle the glass." android:textColor="#D9FFFFFF" android:textSize="14sp" />
+
+                    <LinearLayout android:id="@+id/paletteAurora" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical" android:background="@drawable/glass_card_small" android:padding="18dp">
+                        <View android:layout_width="44dp" android:layout_height="44dp" android:background="@drawable/dot_aurora" />
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginLeft="16dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Aurora" android:textColor="#FFFFFF" android:textSize="17sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Violet · pink · teal" android:textColor="#CCFFFFFF" android:textSize="13sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout android:id="@+id/paletteOcean" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical" android:background="@drawable/glass_card_small" android:padding="18dp" android:layout_marginTop="12dp">
+                        <View android:layout_width="44dp" android:layout_height="44dp" android:background="@drawable/dot_ocean" />
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginLeft="16dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ocean" android:textColor="#FFFFFF" android:textSize="17sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Deep blue · cyan" android:textColor="#CCFFFFFF" android:textSize="13sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout android:id="@+id/paletteSunset" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical" android:background="@drawable/glass_card_small" android:padding="18dp" android:layout_marginTop="12dp">
+                        <View android:layout_width="44dp" android:layout_height="44dp" android:background="@drawable/dot_sunset" />
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginLeft="16dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sunset" android:textColor="#FFFFFF" android:textSize="17sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Amber · coral · rose" android:textColor="#CCFFFFFF" android:textSize="13sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout android:id="@+id/paletteEmerald" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical" android:background="@drawable/glass_card_small" android:padding="18dp" android:layout_marginTop="12dp" android:layout_marginBottom="8dp">
+                        <View android:layout_width="44dp" android:layout_height="44dp" android:background="@drawable/dot_emerald" />
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginLeft="16dp">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Emerald" android:textColor="#FFFFFF" android:textSize="17sp" android:textStyle="bold" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mint · green · aqua" android:textColor="#CCFFFFFF" android:textSize="13sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </ScrollView>
+
+            <!-- PAGE ABOUT -->
+            <ScrollView android:id="@+id/pageAbout" android:layout_width="match_parent" android:layout_height="match_parent"
+                android:scrollbars="none" android:visibility="gone" android:fillViewport="true">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"
+                        android:gravity="center_horizontal" android:background="@drawable/glass_card" android:padding="28dp">
+                        <TextView android:layout_width="72dp" android:layout_height="72dp" android:background="@drawable/avatar_circle"
+                            android:gravity="center" android:text="H" android:textColor="#FFFFFF" android:textSize="30sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="14dp"
+                            android:text="Horatio Xiao" android:textColor="#FFFFFF" android:textSize="22sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                            android:text="Galaxy Z Fold8" android:textColor="#CCFFFFFF" android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"
+                        android:background="@drawable/glass_card_small" android:padding="20dp" android:layout_marginTop="14dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="About this app" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"
+                            android:text="Hello World v3.1 — evolved by Muse with a liquid-glass UI, a soft-blurred aurora background, specular glass borders and a floating glass nav bar. No libraries, just native Android."
+                            android:textColor="#D9FFFFFF" android:textSize="14sp" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="10dp"
+                            android:text="Package: com.muse.helloworld" android:textColor="#B3FFFFFF" android:textSize="12sp" />
+                    </LinearLayout>
+
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"
+                        android:background="@drawable/glass_card_small" android:padding="20dp" android:layout_marginTop="14dp">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Updates" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" />
+                        <TextView android:id="@+id/versionText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp"
+                            android:text="Version 3.0" android:textColor="#D9FFFFFF" android:textSize="14sp" />
+                        <TextView android:id="@+id/updateStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp"
+                            android:text="Not checked yet" android:textColor="#B3FFFFFF" android:textSize="13sp" />
+                        <Button android:id="@+id/checkUpdateButton" android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp" android:background="@drawable/glass_button"
+                            android:paddingTop="10dp" android:paddingBottom="10dp"
+                            android:text="Check for updates" android:textColor="#FFFFFF" android:textSize="14sp" android:textAllCaps="false" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp"
+                            android:text="Update feed URL" android:textColor="#CCFFFFFF" android:textSize="12sp" />
+                        <EditText android:id="@+id/feedUrlInput" android:layout_width="match_parent" android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp" android:background="@drawable/input_bg"
+                            android:padding="10dp" android:textColor="#FFFFFF" android:textColorHint="#80FFFFFF"
+                            android:textSize="11sp" android:inputType="textUri" android:singleLine="true" />
+                        <Button android:id="@+id/saveFeedButton" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp" android:background="@drawable/chip"
+                            android:paddingLeft="16dp" android:paddingRight="16dp" android:paddingTop="6dp" android:paddingBottom="6dp"
+                            android:text="Save feed URL" android:textColor="#FFFFFF" android:textSize="12sp" android:textAllCaps="false" />
+                    </LinearLayout>
+
+                    <Button android:id="@+id/helloButton" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp" android:layout_marginBottom="8dp" android:background="@drawable/glass_button"
+                        android:paddingTop="12dp" android:paddingBottom="12dp"
+                        android:text="Say Hello  👋" android:textColor="#FFFFFF" android:textSize="15sp" android:textAllCaps="false" />
+                </LinearLayout>
+            </ScrollView>
+        </FrameLayout>
+
+        <!-- Bottom glass nav -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp"
+            android:orientation="horizontal" android:background="@drawable/glass_pill" android:padding="6dp">
+            <TextView android:id="@+id/navHome" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:gravity="center" android:paddingTop="10dp" android:paddingBottom="10dp"
+                android:background="@drawable/nav_selected" android:text="⌂  Home" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold" />
+            <TextView android:id="@+id/navExplore" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:gravity="center" android:paddingTop="10dp" android:paddingBottom="10dp"
+                android:background="@drawable/nav_idle" android:text="◐  Explore" android:textColor="#CCFFFFFF" android:textSize="14sp" />
+            <TextView android:id="@+id/navAbout" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:gravity="center" android:paddingTop="10dp" android:paddingBottom="10dp"
+                android:background="@drawable/nav_idle" android:text="○  About" android:textColor="#CCFFFFFF" android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
