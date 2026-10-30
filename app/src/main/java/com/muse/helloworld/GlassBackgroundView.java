@@ -14,6 +14,9 @@ import android.view.View;
 public class GlassBackgroundView extends View {
     private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private int palette = 0;
+    private float tiltX = 0f, tiltY = 0f;
+    private float glow = 1.0f;
+    private float softness = 90f;
 
     // base, blob1, blob2, blob3, blob4 per palette
     private int[][] palettes = {
@@ -28,6 +31,9 @@ public class GlassBackgroundView extends View {
     private void init() { setLayerType(View.LAYER_TYPE_SOFTWARE, null); }
 
     public void setPalette(int p) { palette = p % palettes.length; invalidate(); }
+    public void setTilt(float x, float y) { tiltX = x; tiltY = y; invalidate(); }
+    public void setGlow(float g) { glow = g; invalidate(); }
+    public void setSoftness(float s) { softness = s; invalidate(); }
     public int getPalette() { return palette; }
 
     @Override protected void onDraw(Canvas canvas) {
@@ -42,18 +48,20 @@ public class GlassBackgroundView extends View {
         canvas.drawRect(0, 0, w, h, paint);
 
         // soft blurred blobs - the colour the glass refracts / frosts over
-        paint.setMaskFilter(new BlurMaskFilter(90f, BlurMaskFilter.Blur.NORMAL));
-        drawBlob(canvas, w*0.18f, h*0.16f, w*0.55f, pal[1]);
-        drawBlob(canvas, w*0.88f, h*0.28f, w*0.50f, pal[2]);
-        drawBlob(canvas, w*0.75f, h*0.82f, w*0.58f, pal[3]);
-        drawBlob(canvas, w*0.12f, h*0.78f, w*0.42f, pal[4]);
+        paint.setMaskFilter(new BlurMaskFilter(softness, BlurMaskFilter.Blur.NORMAL));
+        float dx = tiltX * w * 0.045f, dy = tiltY * h * 0.045f;
+        drawBlob(canvas, w*0.18f - dx,       h*0.16f - dy,       w*0.55f, pal[1]);
+        drawBlob(canvas, w*0.88f + dx*1.6f,  h*0.28f + dy*0.6f,  w*0.50f, pal[2]);
+        drawBlob(canvas, w*0.75f + dx*0.7f,  h*0.82f + dy*1.5f,  w*0.58f, pal[3]);
+        drawBlob(canvas, w*0.12f - dx*1.3f,  h*0.78f - dy*0.8f,  w*0.42f, pal[4]);
         paint.setMaskFilter(null);
         paint.setShader(null);
     }
 
     private void drawBlob(Canvas c, float cx, float cy, float r, int color) {
+        int a1 = Math.min(255, (int)(235 * glow)), a2 = Math.min(255, (int)(110 * glow));
         paint.setShader(new RadialGradient(cx, cy, r,
-            new int[]{withAlpha(color, 235), withAlpha(color, 110), withAlpha(color, 0)},
+            new int[]{withAlpha(color, a1), withAlpha(color, a2), withAlpha(color, 0)},
             new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
         c.drawCircle(cx, cy, r, paint);
     }

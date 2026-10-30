@@ -1,6 +1,6 @@
 {
-  "versionCode": 4,
-  "versionName": "3.1",
+  "versionCode": 5,
+  "versionName": "4.0",
   "apkUrl": "https://github.com/hxbotai-create/hello-world-android/releases/latest/download/hello-world.apk",
-  "notes": "Self-updating with the correct GitHub feed URL."
+  "notes": "v4.0: tilt-reactive aurora, shake to shuffle, Glass Lab sliders, live clock, compass, battery, light sensor, flashlight."
 }

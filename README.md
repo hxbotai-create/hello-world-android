@@ -3,7 +3,7 @@
 A tiny native Android app built by Muse for Horatio. No libraries, no Gradle —
 just `aapt2` / `javac` / `d8` via `build.sh`.
 
-**Package:** `com.muse.helloworld` · **Version:** 3.1 · **Min SDK:** 24 (Android 7.0) · **Target SDK:** 34
+**Package:** `com.muse.helloworld` · **Version:** 4.0 · **Min SDK:** 24 (Android 7.0) · **Target SDK:** 34
 
 ## Features
 - Liquid-glass UI: frosted translucent cards with gradient sheen and specular
