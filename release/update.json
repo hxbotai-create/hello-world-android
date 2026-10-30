@@ -1,6 +1,6 @@
 {
-  "versionCode": 9,
-  "versionName": "6.0",
+  "versionCode": 10,
+  "versionName": "6.1",
   "apkUrl": "https://github.com/hxbotai-create/hello-world-android/releases/latest/download/hello-world.apk",
-  "notes": "v6.0: the real iPhone Duo animation - a hinge-driven dissolve. Cover content fades and blurs out while the inner screen fades in and sharpens as you unfold (and reverses as you close). Preview it on the Live page."
+  "notes": "v6.1: Fold 8 hinge reports are stepwise (90/180 only) - the dissolve now animates smoothly to each reported angle instead of jumping, parks readable in laptop posture, and stays off on the cover display. Live page lists the fold sensors the phone exposes."
 }

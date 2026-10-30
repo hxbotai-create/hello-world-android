@@ -50,11 +50,11 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     // Duo fade (hinge-driven dissolve)
     private View duoFadeLayer, coverCard, mainContainer;
-    private TextView hingeText;
+    private TextView hingeText, sensorsText;
     private boolean fadePreviewRunning = false;
-    private float lastHingeAngle = -1f;
-    private long lastHingeMoveMs = 0;
-    private boolean dissolveShown = false;
+    private float dissolveProgress = 1f;
+    private ValueAnimator dissolveAnimator;
+    private Runnable settleRunnable;
     private int lastBand = -1;
     private long lastUnfoldTrigger = 0;
     private boolean animating = false;
@@ -126,6 +126,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         coverCard = findViewById(R.id.coverCard);
         mainContainer = findViewById(R.id.mainContainer);
         hingeText = findViewById(R.id.hingeText);
+        sensorsText = findViewById(R.id.sensorsText);
         findViewById(R.id.previewUnfoldButton).setOnClickListener(v -> playDuoFadePreview());
         lastBand = getSharedPreferences("fold", Context.MODE_PRIVATE).getInt("band", -1);
 
@@ -200,6 +201,17 @@ public class MainActivity extends Activity implements SensorEventListener {
             Sensor hinge = sm.getDefaultSensor(Sensor.TYPE_HINGE_ANGLE);
             if (hinge != null) sm.registerListener(this, hinge, SensorManager.SENSOR_DELAY_UI);
             else if (hingeText != null) hingeText.setText("Hinge: no hinge sensor found - use Preview");
+            if (sensorsText != null) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("Hinge sensor: ").append(hinge != null ? hinge.getName() : "none").append("\nFold-related: ");
+                int n = 0;
+                for (Sensor sn : sm.getSensorList(Sensor.TYPE_ALL)) {
+                    String nm = sn.getName().toLowerCase();
+                    if (nm.contains("hinge") || nm.contains("fold") || nm.contains("posture")) { if (n++ > 0) sb.append(", "); sb.append(sn.getName()); }
+                }
+                if (n == 0) sb.append("none");
+                sensorsText.setText(sb.toString());
+            }
         }
         registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         handler.post(clockTick);
@@ -263,23 +275,18 @@ public class MainActivity extends Activity implements SensorEventListener {
             float ang = e.values[0];
             int band = ang < 45 ? 0 : ang < 150 ? 1 : 2;
             if (hingeText != null) hingeText.setText("Hinge: " + Math.round(ang) + "\u00B0 - " + (band == 0 ? "Folded" : band == 1 ? "Half open" : "Fully open"));
-            // The Duo effect proper: dissolve driven live by the hinge angle,
-            // but only while the hinge is actually moving - park it settled when
-            // the angle is stable so half-open (laptop) use stays fully readable.
-            // 25 deg = cover fully shown; 155 deg = inner fully settled.
+            // Fold 8 hinge reports are stepwise (only ~90 and ~180 observed),
+            // so each report becomes a TARGET and the dissolve animates smoothly
+            // to it - the Duo fade without needing a continuous angle stream.
+            // On the cover display (narrow width) the app just runs normally.
             if (!fadePreviewRunning) {
-                long nowMs = System.currentTimeMillis();
-                if (lastHingeAngle >= 0 && Math.abs(ang - lastHingeAngle) > 1.5f) lastHingeMoveMs = nowMs;
-                lastHingeAngle = ang;
-                boolean inMotion = nowMs - lastHingeMoveMs < 700;
-                if (inMotion) {
-                    float pr = (ang - 25f) / 130f;
-                    if (pr < 0f) pr = 0f; if (pr > 1f) pr = 1f;
-                    applyDissolve(pr);
-                    dissolveShown = pr < 0.985f;
-                } else if (dissolveShown) {
+                if (getResources().getConfiguration().screenWidthDp < 550) {
+                    cancelDissolveAnim();
                     applyDissolve(1f);
-                    dissolveShown = false;
+                } else {
+                    float target = (ang - 25f) / 130f;
+                    if (target < 0f) target = 0f; if (target > 1f) target = 1f;
+                    animateDissolveTo(target);
                 }
             }
             if (band != lastBand) {
@@ -337,7 +344,37 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     // progress 0 = cover screen shown, main UI dissolved away.
     // progress 1 = inner screen fully in focus, cover gone.
+    private void cancelDissolveAnim() {
+        if (dissolveAnimator != null) { dissolveAnimator.cancel(); dissolveAnimator = null; }
+        if (settleRunnable != null) { handler.removeCallbacks(settleRunnable); settleRunnable = null; }
+    }
+
+    private void animateDissolveTo(final float target) {
+        if (Math.abs(target - dissolveProgress) < 0.01f) return;
+        cancelDissolveAnim();
+        final float from = dissolveProgress;
+        long dur = 450 + (long) (650 * Math.abs(target - from));
+        ValueAnimator anim = ValueAnimator.ofFloat(from, target);
+        anim.setDuration(dur);
+        anim.setInterpolator(new DecelerateInterpolator());
+        anim.addUpdateListener(a -> applyDissolve((Float) a.getAnimatedValue()));
+        anim.addListener(new android.animation.AnimatorListenerAdapter() {
+            @Override public void onAnimationEnd(android.animation.Animator a) {
+                if (dissolveAnimator == a) dissolveAnimator = null;
+                // Parked mid-fold (laptop posture): hold the effect briefly,
+                // then settle back to a fully readable UI.
+                if (target > 0.03f && target < 0.97f) {
+                    settleRunnable = () -> animateDissolveTo(1f);
+                    handler.postDelayed(settleRunnable, 1200);
+                }
+            }
+        });
+        dissolveAnimator = anim;
+        anim.start();
+    }
+
     private void applyDissolve(float pr) {
+        dissolveProgress = pr;
         if (coverCard == null || mainContainer == null) return;
         if (pr >= 0.985f) {
             duoFadeLayer.setVisibility(View.GONE);
@@ -373,10 +410,18 @@ public class MainActivity extends Activity implements SensorEventListener {
     // Timed version for Preview and for the discrete width-change trigger.
     private void playDuoFadePreview() {
         if (fadePreviewRunning) return;
+        cancelDissolveAnim();
         fadePreviewRunning = true;
         buzz(15);
         ValueAnimator anim = ValueAnimator.ofFloat(0f, 1f);
-        anim.setDuration(1500);
+        // Emulators (esp. software-rendered) take seconds per screenshot, so a
+        // 1.5s preview is unobservable there - stretch it when on an emulator.
+        boolean emu = Build.FINGERPRINT.toLowerCase().contains("generic")
+            || Build.FINGERPRINT.toLowerCase().contains("emulator")
+            || Build.MODEL.toLowerCase().contains("emulator")
+            || Build.MODEL.toLowerCase().contains("sdk gphone")
+            || Build.MANUFACTURER.toLowerCase().contains("unknown");
+        anim.setDuration(emu ? 12000 : 1500);
         anim.setInterpolator(new DecelerateInterpolator());
         anim.addUpdateListener(a -> applyDissolve((Float) a.getAnimatedValue()));
         anim.addListener(new android.animation.AnimatorListenerAdapter() {
