@@ -44,6 +44,13 @@ public class MainActivity extends Activity implements SensorEventListener {
     private boolean torchOn = false;
     private String torchCameraId = null;
 
+    // unfold animation
+    private View unfoldOverlay, panelLeft, panelRight;
+    private TextView duoTitle, duoSub, hingeText;
+    private int lastBand = -1;
+    private long lastUnfoldTrigger = 0;
+    private boolean animating = false;
+
     private static final String[] CARDINALS = {"N","NE","E","SE","S","SW","W","NW"};
 
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +113,20 @@ public class MainActivity extends Activity implements SensorEventListener {
         Button torchBtn = (Button) findViewById(R.id.torchButton);
         torchBtn.setOnClickListener(v -> toggleTorch(torchBtn));
 
+        // Unfold overlay
+        unfoldOverlay = findViewById(R.id.unfoldOverlay);
+        panelLeft = findViewById(R.id.panelLeft);
+        panelRight = findViewById(R.id.panelRight);
+        duoTitle = findViewById(R.id.duoTitle);
+        duoSub = findViewById(R.id.duoSub);
+        hingeText = findViewById(R.id.hingeText);
+        unfoldOverlay.post(() -> {
+            panelLeft.setPivotX(panelLeft.getWidth()); panelLeft.setPivotY(panelLeft.getHeight() / 2f);
+            panelRight.setPivotX(0); panelRight.setPivotY(panelRight.getHeight() / 2f);
+        });
+        findViewById(R.id.previewUnfoldButton).setOnClickListener(v -> showUnfoldAnimation());
+        lastBand = getSharedPreferences("fold", Context.MODE_PRIVATE).getInt("band", -1);
+
         // Sensors
         sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 
@@ -155,6 +176,9 @@ public class MainActivity extends Activity implements SensorEventListener {
             if (rv != null) sm.registerListener(this, rv, SensorManager.SENSOR_DELAY_UI);
             Sensor li = sm.getDefaultSensor(Sensor.TYPE_LIGHT);
             if (li != null) sm.registerListener(this, li, SensorManager.SENSOR_DELAY_UI);
+            Sensor hinge = sm.getDefaultSensor(Sensor.TYPE_HINGE_ANGLE);
+            if (hinge != null) sm.registerListener(this, hinge, SensorManager.SENSOR_DELAY_UI);
+            else if (hingeText != null) hingeText.setText("Hinge: no hinge sensor found - use Preview");
         }
         registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         handler.post(clockTick);
@@ -213,6 +237,16 @@ public class MainActivity extends Activity implements SensorEventListener {
             int deg = (int) ((Math.toDegrees(ori[0]) + 360) % 360);
             if (compassText != null) compassText.setText(deg + "\u00B0");
             if (cardinalText != null) cardinalText.setText("Compass - " + CARDINALS[Math.round(deg / 45f) % 8]);
+        } else if (e.sensor.getType() == Sensor.TYPE_HINGE_ANGLE) {
+            float ang = e.values[0];
+            int band = ang < 45 ? 0 : ang < 150 ? 1 : 2;
+            if (hingeText != null) hingeText.setText("Hinge: " + Math.round(ang) + "\u00B0 - " + (band == 0 ? "Folded" : band == 1 ? "Half open" : "Fully open"));
+            if (band != lastBand) {
+                boolean opening = lastBand != -1 && lastBand < 2 && band == 2;
+                getSharedPreferences("fold", Context.MODE_PRIVATE).edit().putInt("band", band).apply();
+                lastBand = band;
+                if (opening && System.currentTimeMillis() - lastUnfoldTrigger > 4000) showUnfoldAnimation();
+            }
         } else if (e.sensor.getType() == Sensor.TYPE_LIGHT) {
             float lux = e.values[0];
             if (lightText != null) lightText.setText(Math.round(lux) + " lux\n" + (lux < 10 ? "Dark" : lux < 100 ? "Dim" : lux < 1000 ? "Indoor" : "Bright"));
@@ -255,6 +289,31 @@ public class MainActivity extends Activity implements SensorEventListener {
         });
         Button hello = findViewById(R.id.helloButton);
         hello.setOnClickListener(v -> Toast.makeText(this, "Hello, Horatio! \uD83D\uDC4B from Muse", Toast.LENGTH_LONG).show());
+    }
+
+    private void showUnfoldAnimation() {
+        if (animating || unfoldOverlay == null) return;
+        animating = true;
+        lastUnfoldTrigger = System.currentTimeMillis();
+        buzz(25);
+        unfoldOverlay.setVisibility(View.VISIBLE);
+        unfoldOverlay.setAlpha(0f);
+        unfoldOverlay.animate().alpha(1f).setDuration(180).start();
+        panelLeft.setRotationY(-82f); panelRight.setRotationY(82f);
+        panelLeft.animate().rotationY(0f).setDuration(750).setInterpolator(new DecelerateInterpolator()).start();
+        panelRight.animate().rotationY(0f).setDuration(750).setInterpolator(new DecelerateInterpolator())
+            .withEndAction(() -> buzz(15)).start();
+        duoTitle.setAlpha(0f); duoTitle.setScaleX(0.75f); duoTitle.setScaleY(0.75f);
+        duoTitle.animate().alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(220).setDuration(450)
+            .setInterpolator(new DecelerateInterpolator()).start();
+        duoSub.setAlpha(0f);
+        duoSub.animate().alpha(1f).setStartDelay(380).setDuration(400).start();
+        handler.postDelayed(() -> {
+            unfoldOverlay.animate().alpha(0f).setDuration(350).withEndAction(() -> {
+                unfoldOverlay.setVisibility(View.GONE);
+                animating = false;
+            }).start();
+        }, 2500);
     }
 
     private void showPage(int idx) {
