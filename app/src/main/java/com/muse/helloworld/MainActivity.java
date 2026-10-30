@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -134,6 +135,25 @@ public class MainActivity extends Activity implements SensorEventListener {
         showPage(0);
     }
 
+    // Fallback + primary unfold detection: display width class changes on fold/unfold.
+    // Folded cover screen is narrow (~<500dp wide); the unfolded inner display is >=550dp.
+    private void checkWidthUnfold() {
+        int wDp = getResources().getConfiguration().screenWidthDp;
+        if (wDp == Configuration.SCREEN_WIDTH_DP_UNDEFINED || wDp == 0) return;
+        int nowBand = wDp >= 550 ? 1 : 0;
+        android.content.SharedPreferences prefs = getSharedPreferences("fold", Context.MODE_PRIVATE);
+        int prevBand = prefs.getInt("widthBand", -1);
+        if (prevBand != nowBand) prefs.edit().putInt("widthBand", nowBand).apply();
+        if (prevBand == 0 && nowBand == 1 && System.currentTimeMillis() - lastUnfoldTrigger > 4000) {
+            handler.postDelayed(() -> showUnfoldAnimation(), 450);
+        }
+    }
+
+    @Override public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        checkWidthUnfold();
+    }
+
     private void applyPalette(int idx) {
         currentPalette = idx;
         bg.setPalette(idx);
@@ -182,6 +202,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
         registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         handler.post(clockTick);
+        checkWidthUnfold();
     }
 
     @Override protected void onPause() {

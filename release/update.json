@@ -1,6 +1,6 @@
 {
-  "versionCode": 6,
-  "versionName": "5.0",
+  "versionCode": 7,
+  "versionName": "5.1",
   "apkUrl": "https://github.com/hxbotai-create/hello-world-android/releases/latest/download/hello-world.apk",
-  "notes": "v5.0: the iPhone Duo unfold animation - plays when you unfold your Fold 8 (hinge sensor), with a preview button and live hinge readout on the Live page."
+  "notes": "v5.1 fix: unfold animation now also triggers from the display-size change on unfold, and the app no longer restarts when you fold/unfold."
 }
