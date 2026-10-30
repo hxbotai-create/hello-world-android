@@ -50,7 +50,10 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     // Duo fade (hinge-driven dissolve)
     private View duoFadeLayer, coverCard, mainContainer;
-    private TextView hingeText, sensorsText;
+    private TextView hingeText, sensorsText, foldingText;
+    private Sensor foldingSensor;
+    private int foldingEvents = 0;
+    private String foldingRegResult = "not tried";
     private boolean fadePreviewRunning = false;
     private float dissolveProgress = 1f;
     private ValueAnimator dissolveAnimator;
@@ -127,6 +130,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         mainContainer = findViewById(R.id.mainContainer);
         hingeText = findViewById(R.id.hingeText);
         sensorsText = findViewById(R.id.sensorsText);
+        foldingText = findViewById(R.id.foldingText);
         findViewById(R.id.previewUnfoldButton).setOnClickListener(v -> playDuoFadePreview());
         lastBand = getSharedPreferences("fold", Context.MODE_PRIVATE).getInt("band", -1);
 
@@ -201,6 +205,26 @@ public class MainActivity extends Activity implements SensorEventListener {
             Sensor hinge = sm.getDefaultSensor(Sensor.TYPE_HINGE_ANGLE);
             if (hinge != null) sm.registerListener(this, hinge, SensorManager.SENSOR_DELAY_UI);
             else if (hingeText != null) hingeText.setText("Hinge: no hinge sensor found - use Preview");
+            // Try Samsung's private folding-angle sensor (continuous). It is
+            // gated by com.samsung.permission.SSENSOR; on stock firmware the
+            // registration may succeed but deliver no events - we report exactly
+            // what happens on the Live page.
+            if (foldingSensor == null) {
+                for (Sensor sn : sm.getSensorList(Sensor.TYPE_ALL)) {
+                    String st = "";
+                    try { st = sn.getStringType(); } catch (Exception ignored) {}
+                    if ("com.samsung.sensor.folding_angle".equals(st) || sn.getType() == 65686) { foldingSensor = sn; break; }
+                }
+            }
+            if (foldingSensor != null) {
+                try {
+                    boolean ok = sm.registerListener(this, foldingSensor, SensorManager.SENSOR_DELAY_FASTEST);
+                    foldingRegResult = ok ? "registered" : "register returned false";
+                } catch (Exception ex) {
+                    foldingRegResult = "register threw " + ex.getClass().getSimpleName();
+                }
+            }
+            updateFoldingText();
             if (sensorsText != null) {
                 StringBuilder sb = new StringBuilder();
                 sb.append("Hinge sensor: ").append(hinge != null ? hinge.getName() : "none").append("\nFold-related: ");
@@ -251,6 +275,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     };
 
     @Override public void onSensorChanged(SensorEvent e) {
+        if (foldingSensor != null && e.sensor == foldingSensor) { onFoldingEvent(e); return; }
         if (e.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             float x = e.values[0], y = e.values[1], z = e.values[2];
             smoothX = smoothX * 0.85f + (x / 9.81f) * 0.15f;
@@ -303,6 +328,34 @@ public class MainActivity extends Activity implements SensorEventListener {
             if (lightText != null) lightText.setText(Math.round(lux) + " lux\n" + (lux < 10 ? "Dark" : lux < 100 ? "Dim" : lux < 1000 ? "Indoor" : "Bright"));
         }
     }
+    private void updateFoldingText() {
+        if (foldingText == null) return;
+        String perm;
+        try { perm = checkSelfPermission("com.samsung.permission.SSENSOR") == android.content.pm.PackageManager.PERMISSION_GRANTED ? "granted" : "denied"; }
+        catch (Exception e) { perm = "unknown"; }
+        if (foldingSensor == null) {
+            foldingText.setText("Private folding sensor: not present on this device\nSSENSOR permission: " + perm);
+        } else {
+            foldingText.setText("Private folding sensor: " + foldingSensor.getName() + " (type " + foldingSensor.getType() + ")\n"
+                + foldingRegResult + " - events received: " + foldingEvents + "\nSSENSOR permission: " + perm);
+        }
+    }
+
+    private void onFoldingEvent(SensorEvent e) {
+        foldingEvents++;
+        float v = e.values.length > 0 ? e.values[0] : -1f;
+        if (foldingEvents <= 3 || foldingEvents % 10 == 0) updateFoldingText();
+        // If the private sensor actually delivers degrees, it becomes the
+        // primary dissolve source (true tracking).
+        if (!fadePreviewRunning && v >= 0f && v <= 180f
+                && getResources().getConfiguration().screenWidthDp >= 550) {
+            float pr = (v - 25f) / 130f;
+            if (pr < 0f) pr = 0f; if (pr > 1f) pr = 1f;
+            cancelDissolveAnim();
+            applyDissolve(pr);
+        }
+    }
+
     @Override public void onAccuracyChanged(Sensor s, int a) {}
 
     private void setupUpdater() {

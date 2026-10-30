@@ -4,13 +4,25 @@ Goal: verify every build on a real (emulated) Android device **before** code is
 pushed or a release is published.
 
 ## Environment (this VM)
-- Android Emulator 37.3.6 + API 34 (Android 14) x86_64 "default" system image,
-  installed under `~/android-sdk` (emulator/, system-images/android-34/default/x86_64).
-- **No /dev/kvm** on this VM, so the emulator runs with forced TCG software
-  emulation (`ANDROID_I_WANT_MY_TCG=yes`, `-accel off`) and SwiftShader
-  software GPU. Boot takes several minutes; UI is slow but functional.
-  2 vCPU, 2 GB guest RAM, 1080x2400.
-- AVD name: `muse-test` (`~/.android/avd/`).
+- Android Emulator 37.3.6, installed under `~/android-sdk` (emulator/,
+  system-images/...). **Active test AVD: `muse-test25` — API 25 (Android 7.1)
+  "default" x86_64 image, 720x1280, 1.5 GB guest RAM.**
+- Why API 25: the API 34 and API 30 images never stabilize on this VM.
+  With **no /dev/kvm** (forced TCG software emulation,
+  `ANDROID_I_WANT_MY_TCG=yes`, `-accel off`, SwiftShader GPU, 2 vCPU),
+  their system_server main thread blocks so long that the Android watchdog
+  kills it in a loop — the `package` service flaps and every install fails
+  with "Can't find service: package" / binder broken pipe, even though
+  package scanning completes. API 25's much lighter system stays up:
+  boot-to-package-ready in ~4-6 min, installs succeed.
+- Trade-offs of API 25: RenderEffect blur (API 31+) skips via its guard;
+  no hinge sensor (Fold-only path untestable here); `uiautomator dump`
+  fails with "null root node returned by UiTestAutomationBridge", so
+  text assertions in emulator_test.py don't work on this image — use
+  coordinate taps + screenshots (screenshot latency is ~10s, so the app
+  stretches the fade Preview to 12s on emulators to make it observable).
+- AVDs `muse-test` (API 34) and `muse-test30` (API 30) still exist but are
+  not usable here; don't waste time re-trying them on this VM.
 
 ## Run
 ```bash

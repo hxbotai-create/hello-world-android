@@ -21,7 +21,7 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:background="@drawable/chip" android:paddingLeft="12dp" android:paddingRight="12dp"
                 android:paddingTop="6dp" android:paddingBottom="6dp"
-                android:text="v6.1" android:textColor="#E6FFFFFF" android:textSize="12sp" />
+                android:text="v6.2" android:textColor="#E6FFFFFF" android:textSize="12sp" />
         </LinearLayout>
 
         <!-- Pages container -->
@@ -158,6 +158,8 @@
                             android:text="Hinge: waiting for sensor..." android:textColor="#D9FFFFFF" android:textSize="13sp" />
                         <TextView android:id="@+id/sensorsText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp"
                             android:text="Hinge sensor: -" android:textColor="#99FFFFFF" android:textSize="11sp" />
+                        <TextView android:id="@+id/foldingText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                            android:text="Private folding sensor: -" android:textColor="#99FFFFFF" android:textSize="11sp" />
                         <Button android:id="@+id/previewUnfoldButton" android:layout_width="match_parent" android:layout_height="wrap_content"
                             android:layout_marginTop="10dp" android:background="@drawable/glass_button"
                             android:paddingTop="10dp" android:paddingBottom="10dp"

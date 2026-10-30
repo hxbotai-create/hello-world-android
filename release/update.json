@@ -1,6 +1,6 @@
 {
-  "versionCode": 10,
-  "versionName": "6.1",
+  "versionCode": 11,
+  "versionName": "6.2",
   "apkUrl": "https://github.com/hxbotai-create/hello-world-android/releases/latest/download/hello-world.apk",
-  "notes": "v6.1: Fold 8 hinge reports are stepwise (90/180 only) - the dissolve now animates smoothly to each reported angle instead of jumping, parks readable in laptop posture, and stays off on the cover display. Live page lists the fold sensors the phone exposes."
+  "notes": "v6.2: tries Samsung's private folding-angle sensor (com.samsung.sensor.folding_angle) directly - declares SSENSOR, registers for its events, and reports on the Live page what your phone allows. If events flow, the Duo dissolve becomes truly hinge-tracked."
 }
