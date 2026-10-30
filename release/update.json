@@ -1,6 +1,6 @@
 {
-  "versionCode": 8,
-  "versionName": "5.2",
+  "versionCode": 9,
+  "versionName": "6.0",
   "apkUrl": "https://github.com/hxbotai-create/hello-world-android/releases/latest/download/hello-world.apk",
-  "notes": "v5.2: fixes self-update downloads - follows GitHub redirects properly and serves the installer the file name/size it asks for."
+  "notes": "v6.0: the real iPhone Duo animation - a hinge-driven dissolve. Cover content fades and blurs out while the inner screen fades in and sharpens as you unfold (and reverses as you close). Preview it on the Live page."
 }

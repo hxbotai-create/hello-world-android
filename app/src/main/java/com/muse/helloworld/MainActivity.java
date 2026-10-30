@@ -19,6 +19,9 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
+import android.animation.ValueAnimator;
+import android.graphics.RenderEffect;
+import android.graphics.Shader;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.SeekBar;
@@ -45,9 +48,13 @@ public class MainActivity extends Activity implements SensorEventListener {
     private boolean torchOn = false;
     private String torchCameraId = null;
 
-    // unfold animation
-    private View unfoldOverlay, panelLeft, panelRight;
-    private TextView duoTitle, duoSub, hingeText;
+    // Duo fade (hinge-driven dissolve)
+    private View duoFadeLayer, coverCard, mainContainer;
+    private TextView hingeText;
+    private boolean fadePreviewRunning = false;
+    private float lastHingeAngle = -1f;
+    private long lastHingeMoveMs = 0;
+    private boolean dissolveShown = false;
     private int lastBand = -1;
     private long lastUnfoldTrigger = 0;
     private boolean animating = false;
@@ -114,18 +121,12 @@ public class MainActivity extends Activity implements SensorEventListener {
         Button torchBtn = (Button) findViewById(R.id.torchButton);
         torchBtn.setOnClickListener(v -> toggleTorch(torchBtn));
 
-        // Unfold overlay
-        unfoldOverlay = findViewById(R.id.unfoldOverlay);
-        panelLeft = findViewById(R.id.panelLeft);
-        panelRight = findViewById(R.id.panelRight);
-        duoTitle = findViewById(R.id.duoTitle);
-        duoSub = findViewById(R.id.duoSub);
+        // Duo fade layer
+        duoFadeLayer = findViewById(R.id.duoFadeLayer);
+        coverCard = findViewById(R.id.coverCard);
+        mainContainer = findViewById(R.id.mainContainer);
         hingeText = findViewById(R.id.hingeText);
-        unfoldOverlay.post(() -> {
-            panelLeft.setPivotX(panelLeft.getWidth()); panelLeft.setPivotY(panelLeft.getHeight() / 2f);
-            panelRight.setPivotX(0); panelRight.setPivotY(panelRight.getHeight() / 2f);
-        });
-        findViewById(R.id.previewUnfoldButton).setOnClickListener(v -> showUnfoldAnimation());
+        findViewById(R.id.previewUnfoldButton).setOnClickListener(v -> playDuoFadePreview());
         lastBand = getSharedPreferences("fold", Context.MODE_PRIVATE).getInt("band", -1);
 
         // Sensors
@@ -145,7 +146,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         int prevBand = prefs.getInt("widthBand", -1);
         if (prevBand != nowBand) prefs.edit().putInt("widthBand", nowBand).apply();
         if (prevBand == 0 && nowBand == 1 && System.currentTimeMillis() - lastUnfoldTrigger > 4000) {
-            handler.postDelayed(() -> showUnfoldAnimation(), 450);
+            handler.postDelayed(() -> playDuoFadePreview(), 450);
         }
     }
 
@@ -262,11 +263,33 @@ public class MainActivity extends Activity implements SensorEventListener {
             float ang = e.values[0];
             int band = ang < 45 ? 0 : ang < 150 ? 1 : 2;
             if (hingeText != null) hingeText.setText("Hinge: " + Math.round(ang) + "\u00B0 - " + (band == 0 ? "Folded" : band == 1 ? "Half open" : "Fully open"));
+            // The Duo effect proper: dissolve driven live by the hinge angle,
+            // but only while the hinge is actually moving - park it settled when
+            // the angle is stable so half-open (laptop) use stays fully readable.
+            // 25 deg = cover fully shown; 155 deg = inner fully settled.
+            if (!fadePreviewRunning) {
+                long nowMs = System.currentTimeMillis();
+                if (lastHingeAngle >= 0 && Math.abs(ang - lastHingeAngle) > 1.5f) lastHingeMoveMs = nowMs;
+                lastHingeAngle = ang;
+                boolean inMotion = nowMs - lastHingeMoveMs < 700;
+                if (inMotion) {
+                    float pr = (ang - 25f) / 130f;
+                    if (pr < 0f) pr = 0f; if (pr > 1f) pr = 1f;
+                    applyDissolve(pr);
+                    dissolveShown = pr < 0.985f;
+                } else if (dissolveShown) {
+                    applyDissolve(1f);
+                    dissolveShown = false;
+                }
+            }
             if (band != lastBand) {
                 boolean opening = lastBand != -1 && lastBand < 2 && band == 2;
                 getSharedPreferences("fold", Context.MODE_PRIVATE).edit().putInt("band", band).apply();
                 lastBand = band;
-                if (opening && System.currentTimeMillis() - lastUnfoldTrigger > 4000) showUnfoldAnimation();
+                if (opening && System.currentTimeMillis() - lastUnfoldTrigger > 4000) {
+                    lastUnfoldTrigger = System.currentTimeMillis();
+                    buzz(20);
+                }
             }
         } else if (e.sensor.getType() == Sensor.TYPE_LIGHT) {
             float lux = e.values[0];
@@ -312,29 +335,58 @@ public class MainActivity extends Activity implements SensorEventListener {
         hello.setOnClickListener(v -> Toast.makeText(this, "Hello, Horatio! \uD83D\uDC4B from Muse", Toast.LENGTH_LONG).show());
     }
 
-    private void showUnfoldAnimation() {
-        if (animating || unfoldOverlay == null) return;
-        animating = true;
-        lastUnfoldTrigger = System.currentTimeMillis();
-        buzz(25);
-        unfoldOverlay.setVisibility(View.VISIBLE);
-        unfoldOverlay.setAlpha(0f);
-        unfoldOverlay.animate().alpha(1f).setDuration(180).start();
-        panelLeft.setRotationY(-82f); panelRight.setRotationY(82f);
-        panelLeft.animate().rotationY(0f).setDuration(750).setInterpolator(new DecelerateInterpolator()).start();
-        panelRight.animate().rotationY(0f).setDuration(750).setInterpolator(new DecelerateInterpolator())
-            .withEndAction(() -> buzz(15)).start();
-        duoTitle.setAlpha(0f); duoTitle.setScaleX(0.75f); duoTitle.setScaleY(0.75f);
-        duoTitle.animate().alpha(1f).scaleX(1f).scaleY(1f).setStartDelay(220).setDuration(450)
-            .setInterpolator(new DecelerateInterpolator()).start();
-        duoSub.setAlpha(0f);
-        duoSub.animate().alpha(1f).setStartDelay(380).setDuration(400).start();
-        handler.postDelayed(() -> {
-            unfoldOverlay.animate().alpha(0f).setDuration(350).withEndAction(() -> {
-                unfoldOverlay.setVisibility(View.GONE);
-                animating = false;
-            }).start();
-        }, 2500);
+    // progress 0 = cover screen shown, main UI dissolved away.
+    // progress 1 = inner screen fully in focus, cover gone.
+    private void applyDissolve(float pr) {
+        if (coverCard == null || mainContainer == null) return;
+        if (pr >= 0.985f) {
+            duoFadeLayer.setVisibility(View.GONE);
+            mainContainer.setAlpha(1f);
+            mainContainer.setScaleX(1f); mainContainer.setScaleY(1f);
+            clearBlur();
+            return;
+        }
+        duoFadeLayer.setVisibility(View.VISIBLE);
+        // cover dissolves: fades out while expanding toward the viewer (screen "grows")
+        coverCard.setAlpha(1f - pr);
+        float cs = 0.9f + 0.35f * pr;
+        coverCard.setScaleX(cs); coverCard.setScaleY(cs);
+        // inner content fades in and sharpens (scale settles, blur clears)
+        mainContainer.setAlpha(0.2f + 0.8f * pr);
+        float ms = 0.94f + 0.06f * pr;
+        mainContainer.setScaleX(ms); mainContainer.setScaleY(ms);
+        applyBlur((1f - pr) * 18f);
+    }
+
+    private void applyBlur(float radius) {
+        if (Build.VERSION.SDK_INT < 31) return;
+        try {
+            if (radius < 0.5f) mainContainer.setRenderEffect(null);
+            else mainContainer.setRenderEffect(RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP));
+        } catch (Exception ignored) {}
+    }
+    private void clearBlur() {
+        if (Build.VERSION.SDK_INT < 31) return;
+        try { mainContainer.setRenderEffect(null); } catch (Exception ignored) {}
+    }
+
+    // Timed version for Preview and for the discrete width-change trigger.
+    private void playDuoFadePreview() {
+        if (fadePreviewRunning) return;
+        fadePreviewRunning = true;
+        buzz(15);
+        ValueAnimator anim = ValueAnimator.ofFloat(0f, 1f);
+        anim.setDuration(1500);
+        anim.setInterpolator(new DecelerateInterpolator());
+        anim.addUpdateListener(a -> applyDissolve((Float) a.getAnimatedValue()));
+        anim.addListener(new android.animation.AnimatorListenerAdapter() {
+            @Override public void onAnimationEnd(android.animation.Animator a) {
+                fadePreviewRunning = false;
+                applyDissolve(1f);
+                buzz(15);
+            }
+        });
+        anim.start();
     }
 
     private void showPage(int idx) {

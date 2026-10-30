@@ -7,7 +7,7 @@
         android:id="@+id/bgView"
         android:layout_width="match_parent" android:layout_height="match_parent" />
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
+    <LinearLayout android:id="@+id/mainContainer" android:layout_width="match_parent" android:layout_height="match_parent"
         android:orientation="vertical" android:padding="20dp">
 
         <!-- Header -->
@@ -21,7 +21,7 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:background="@drawable/chip" android:paddingLeft="12dp" android:paddingRight="12dp"
                 android:paddingTop="6dp" android:paddingBottom="6dp"
-                android:text="v5.2" android:textColor="#E6FFFFFF" android:textSize="12sp" />
+                android:text="v6.0" android:textColor="#E6FFFFFF" android:textSize="12sp" />
         </LinearLayout>
 
         <!-- Pages container -->
@@ -153,13 +153,13 @@
                         android:text="Your Fold8, sensed in real time. Tilt it - the aurora moves with you." android:textColor="#D9FFFFFF" android:textSize="14sp" />
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"
                         android:background="@drawable/glass_card_small" android:padding="20dp" android:layout_marginBottom="14dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Unfold animation" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Duo fade - hinge driven" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" />
                         <TextView android:id="@+id/hingeText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp"
                             android:text="Hinge: waiting for sensor..." android:textColor="#D9FFFFFF" android:textSize="13sp" />
                         <Button android:id="@+id/previewUnfoldButton" android:layout_width="match_parent" android:layout_height="wrap_content"
                             android:layout_marginTop="10dp" android:background="@drawable/glass_button"
                             android:paddingTop="10dp" android:paddingBottom="10dp"
-                            android:text="Preview the iPhone Duo unfold" android:textColor="#FFFFFF" android:textSize="14sp" android:textAllCaps="false" />
+                            android:text="Preview the iPhone Duo fade" android:textColor="#FFFFFF" android:textSize="14sp" android:textAllCaps="false" />
                     </LinearLayout>
 
 
@@ -267,21 +267,18 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Unfold overlay: iPhone Duo animation -->
-    <FrameLayout android:id="@+id/unfoldOverlay" android:layout_width="match_parent" android:layout_height="match_parent"
-        android:background="#E60B1026" android:visibility="gone">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
-            android:orientation="vertical" android:gravity="center" android:padding="32dp">
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal">
-                <View android:id="@+id/panelLeft" android:layout_width="88dp" android:layout_height="128dp"
-                    android:background="@drawable/glass_card" android:layout_marginRight="5dp" />
-                <View android:id="@+id/panelRight" android:layout_width="88dp" android:layout_height="128dp"
-                    android:background="@drawable/glass_card" android:layout_marginLeft="5dp" />
-            </LinearLayout>
-            <TextView android:id="@+id/duoTitle" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginTop="28dp" android:text="iPhone Duo" android:textColor="#FFFFFF" android:textSize="42sp" android:textStyle="bold" />
-            <TextView android:id="@+id/duoSub" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" android:text="Unfolded - as imagined on your Fold 8" android:textColor="#CCFFFFFF" android:textSize="15sp" />
+    <!-- Duo fade layer: cover screen mock that dissolves as the hinge opens -->
+    <FrameLayout android:id="@+id/duoFadeLayer" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:visibility="gone" android:clickable="false" android:focusable="false">
+        <LinearLayout android:id="@+id/coverCard" android:layout_width="180dp" android:layout_height="360dp"
+            android:layout_gravity="center" android:orientation="vertical" android:gravity="center"
+            android:background="@drawable/duo_cover" android:padding="20dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="9:41" android:textColor="#FFFFFF" android:textSize="34sp" android:textStyle="bold" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp"
+                android:text="iPhone Duo" android:textColor="#E6FFFFFF" android:textSize="14sp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="120dp"
+                android:text="•  •  •  •" android:textColor="#B3FFFFFF" android:textSize="18sp" />
         </LinearLayout>
     </FrameLayout>
 
